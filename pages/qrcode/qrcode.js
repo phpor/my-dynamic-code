@@ -1,72 +1,38 @@
 // pages/qrcode/qrcode.js
 // 		$data = sprintf("otpauth://totp/Beebank:%s?secret=%s&issuer=Beebank", $username, $secret);
-var Sha1 = require("sha1.js");
-console.log(Sha1);
 
-var Totp = function() {
-  'use strict';
-
-  var dec2hex = function (s) {
-    return (s < 15.5 ? "0" : "") + Math.round(s).toString(16);
-  };
-
-  var hex2dec = function (s) {
-    return parseInt(s, 16);
-  };
-
-  var leftpad = function (s, l, p) {
-    if (l + 1 >= s.length) {
-      s = Array(l + 1 - s.length).join(p) + s;
-    }
-    return s;
-  };
-
-  var base32tohex = function (base32) {
-    var base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    var bits = "";
-    var hex = "";
-    for (var i = 0; i < base32.length; i++) {
-      var val = base32chars.indexOf(base32.charAt(i).toUpperCase());
-      bits += leftpad(val.toString(2), 5, '0');
-    }
-    for (var i = 0; i + 4 <= bits.length; i += 4) {
-      var chunk = bits.substr(i, 4);
-      hex = hex + parseInt(chunk, 2).toString(16);
-    }
-    return hex;
-  };
-
-  var getOTP = function (secret) {
-    try {
-      var epoch = Math.round(new Date().getTime() / 1000.0);
-      var time = leftpad(dec2hex(Math.floor(epoch / 30)), 16, "0");
-      var hmacObj = new Sha1.sha1(time, "HEX");
-      var hmac = hmacObj.getHMAC(base32tohex(secret), "HEX", "SHA-1", "HEX");
-      var offset = hex2dec(hmac.substring(hmac.length - 1));
-      var otp = (hex2dec(hmac.substr(offset * 2, 8)) & hex2dec("7fffffff")) + "";
-      otp = (otp).substr(otp.length - 6, 6);
-    } catch (error) {
-      throw error;
-    }
-    return otp;
-  };
-
-  var parseUrl = function (protocol) {
-    var regex = new RegExp("^otpauth://totp/([^?]+)[?]secret=([^&]+)&issuer=(.+)$");
-    var arr = protocol.match(regex);
-    if (!arr) return null;
+var Totp = require("totp.js");
+var DB = function() {
     return {
-      name: arr[1],
-      secret: decodeURIComponent(arr[2]).replace(/ /g, ""), // 空格不能被正确处理
-      issuer: decodeURIComponent(arr[3]),
+      save: function(data, onComplete) {
+        wx.setStorage({
+          key: 'account-list',
+          data: data,
+          complete: onComplete,
+        });
+      },
+      query: function (onComplete) {
+        wx.getStorage({
+          key: 'account-list',
+          complete: function (res) {
+            var data = {};
+            if (res.data) {
+              data = res.data;
+            }
+            onComplete(data);
+          },
+        })
+      },
+      del: function (name, onComplete) {
+        var db = this;
+        this.query(function(data) {
+          delete data[name];
+          db.save(data, onComplete);
+        });
+      },
     }
-  };
-
-  return {
-    genarate: getOTP,
-    parseUrl: parseUrl,
-  }
 }();
+var deleting = null;
 
 Page({
 
@@ -76,7 +42,44 @@ Page({
   data: {
   
   },
-
+  showCode: function () {
+    var page = this;
+    wx.getStorage({
+      key: 'account-list',
+      success: function (res) {
+        // show account-list
+      },
+      complete: function (res) {
+        var seconds = (new Date()).getSeconds();
+        var life = '' + (100 - (seconds % 30) / 29 * 100) + '%';
+        var data = {};
+        /*
+        data = [
+          { name: "phpor", secret: "mysecret", 'code': '123 456' },
+          { name: "phpor", secret: "mysecret", 'code': '123 456' },
+          { name: "phpor", secret: "mysecret", 'code': '123 456' },
+        ];
+        */
+        if (res.data) data = res.data;
+       // console.log(res);
+        for (var i in data) {
+          if (!data[i]) {
+            delete data[i];
+            continue;
+          }
+         // console.log(data[i]["secret"]);
+          // secret 不能含有空格，否则会报错，耽误了我1个多小时
+          data[i]["code"] = Totp.genarate(data[i]["secret"]).replace(/\B(?=(?:\d{3})+\b)/g, ' ');
+        }
+        if(Object.keys(data).length == 0) return;
+       // console.log(data);
+        page.setData({
+          "life": life,
+          "account_list": data,
+        });
+      }
+    })
+  },
   /**
    * 生命周期函数--监听页面加载
    */
@@ -89,40 +92,9 @@ Page({
   onReady: function () {
    // return;
     var page = this;
-    var showCode = function () {
-      wx.getStorage({
-        key: 'account-list',
-        success: function (res) {
-          // show account-list
-        },
-        complete: function (res) {
-          var seconds = (new Date()).getSeconds();
-          var life = '' + (100 - ( seconds % 30 ) / 29 * 100) + '%';
-          var data = [];
-          /*
-          data = [
-            { name: "phpor", secret: "mysecret", 'code': '123 456' },
-            { name: "phpor", secret: "mysecret", 'code': '123 456' },
-            { name: "phpor", secret: "mysecret", 'code': '123 456' },
-          ];
-          */
-          if (res.data) data = res.data;
-          console.log(res);
-          for(var i in data ) {
-            console.log(data[i]["secret"]);
-            // secret 不能含有空格，否则会报错，耽误了我1个多小时
-            data[i]["code"] = Totp.genarate(data[i]["secret"]).replace(/\B(?=(?:\d{3})+\b)/g, ' ');
-          }
-          page.setData({
-            "life": life,
-            "account_list": data,
-          })
-        }
-      })
-    }
-    showCode();
+    this.showCode();
     setInterval(function () {
-      showCode();
+      page.showCode();
     }, 1000);
   },
 
@@ -167,7 +139,42 @@ Page({
   onShareAppMessage: function () {
   
   },
-  scan: function() {
+  bindRemove: function(e) {
+    console.log(e);
+    var name = e.currentTarget.dataset.name;
+    var page = this;
+    this.setData({
+      deleting: name
+    })
+    var showCode = this.showCode;
+    var clearDel = function() {
+      page.setData({
+        deleting: null,
+      });
+      showCode();
+    };
+    wx.showModal({
+      title: '提示',
+      content: '确认删除 ' + name + ' ？',
+      success: function(sm) {
+        console.log(sm);
+        if (sm.confirm) {
+          DB.del(name, function() {
+            clearDel();
+          });
+        } else {
+          clearDel();
+        }
+      },
+      fail: function() {
+        console.log('fail')
+      },
+      complete: function() {
+        console.log('complete')
+      },
+    })
+  },
+  bindScan: function() {
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode'],
@@ -181,21 +188,12 @@ Page({
             duration: 1000 * 10,
             icon: "none",
           });
+          return;
         }
-        wx.getStorage({
-          key: 'account-list',
-          complete: function(res) {
-            var arr = [];
-            if (res.data) {
-              arr = res.data;
-            }
-            arr[arr.length] = item;
-            wx.setStorage({
-              key: 'account-list',
-              data: arr,
-            });
-          },
-        })
+        DB.query(function(data) {
+          data[item.name] = item;
+          DB.save(data);
+        });
       },
     })
   }

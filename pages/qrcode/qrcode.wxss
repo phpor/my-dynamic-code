@@ -10,6 +10,9 @@
   border-radius: 3px;
   border:1px dashed;
 }
+.account-item-delete {
+  text-decoration:line-through;
+}
 .account-code {
   font-size: 40px;
   font-weight: bold;
