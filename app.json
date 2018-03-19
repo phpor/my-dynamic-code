@@ -1,22 +1,8 @@
 
 {
   "pages": [
-    "pages/qrcode/qrcode",
-    "pages/index/index",
-    "pages/logs/logs"
+    "pages/qrcode/qrcode"
   ],
-  "tabBar": {
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/logs/logs",
-        "text": "日志"
-      }
-    ]
-  },
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#f4f4f4",

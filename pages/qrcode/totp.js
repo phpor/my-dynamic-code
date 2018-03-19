@@ -1,5 +1,4 @@
 var Sha1 = require("sha1.js");
-//console.log(Sha1);
 module.exports = function () {
   'use strict';
 
