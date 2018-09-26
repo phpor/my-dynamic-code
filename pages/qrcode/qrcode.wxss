@@ -20,6 +20,10 @@
 }
 .account-name {
   font: small;
+  display: inline-block;
+}
+.account-com {
+  float: right;
 }
 .life-line {
   border-bottom: 2px solid #33bb33;

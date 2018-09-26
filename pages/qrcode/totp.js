@@ -48,13 +48,14 @@ module.exports = function () {
   };
 
   var parseUrl = function (protocol) {
-    var regex = new RegExp("^otpauth://totp/([^?]+)[?]secret=([^&]+)&issuer=(.+)$");
+    var regex = new RegExp("^otpauth://totp/([^:]+):([^?]+)[?]secret=([^&]+)&issuer=(.+)$");
     var arr = protocol.match(regex);
     if (!arr) return null;
+    var issuer = arr[1]?arr[1]:arr[4];
     return {
-      name: arr[1],
-      secret: decodeURIComponent(arr[2]).replace(/ /g, ""), // 空格不能被正确处理
-      issuer: decodeURIComponent(arr[3]),
+      issuer: issuer,
+      name: arr[2],
+      secret: decodeURIComponent(arr[3]).replace(/ /g, "") // 空格不能被正确处理
     }
   };
 

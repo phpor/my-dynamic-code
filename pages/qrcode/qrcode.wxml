@@ -2,7 +2,10 @@
 <block class="account-list" wx:for="{{account_list}}" wx:key="name">
   <view class="account-item {{deleting == item.name?'account-item-delete':''}}" data-name="{{item.name}}" bindtouchmove='bindRemove'>
     <view class="account-code">{{item.code}}</view>
-    <view class="account-name">{{item.name}}</view>
+    <view>
+      <view class="account-name">{{item.name}}</view>
+      <view class="account-com">{{item.issuer}}</view>
+    </view>
     <view class="life-line" style="width: {{life}}"></view>
   </view>
 </block>
