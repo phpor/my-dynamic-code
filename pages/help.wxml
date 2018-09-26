@@ -1,5 +1,8 @@
-<view>帮助</view>
+<view class="txt-heading">帮助</view>
 <view>
-<text>该微信小程序是Google Authenticator的微信小程序版本，不需要安装单独的APP；Google Authenticator在iOS和Android上安装时都会存在各种问题，但是使用微信小程序就不存在任何问题了。
+<text>该微信小程序是Google Authenticator的微信小程序版本，不需要安装单独的APP；
+Google Authenticator在iOS和Android上安装时都会存在各种问题，但是使用微信小程序就不存在任何问题了。
+
+温馨提示： 您可以通过右上角菜单中的“添加到桌面”功能，将该小程序添加到桌面，每次使用的时候就像使用APP一样方便了：）
 </text>
 </view>
