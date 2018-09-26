@@ -6,4 +6,7 @@
     <view class="life-line" style="width: {{life}}"></view>
   </view>
 </block>
-<button id='add-account' bindtap='bindScan' plain='true' class='button-scan' >[ - ]</button>
+<button id='add-account' bindtap='bindScan' plain='true' class='button-scan' >
+<text class='txt-scan'>[ - ]</text>
+<text>扫一扫</text>
+</button>
